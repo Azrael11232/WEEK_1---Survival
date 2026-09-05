@@ -2,28 +2,95 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public Rigidbody player;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    public Rigidbody rb;
+    public Transform cameraTransform;
 
-    // Update is called once per frame
+    public float speed = 6f;
+    public float jumpForce = 7f;
+    public float blinkDistance = 5f;
+
+    bool isGrounded = true;
+
     void Update()
     {
-        movement();
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        {
+            Jump();
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            Blink();
+        }
     }
 
-    void movement()
+    void FixedUpdate()
     {
-        if(Input.GetKey(KeyCode.W))
-            player.AddForce(Vector3.forward);
-        if(Input.GetKey(KeyCode.A))
-            player.AddForce(Vector3.back);
-         if(Input.GetKey(KeyCode.S))
-            player.AddForce(Vector3.left);
-         if(Input.GetKey(KeyCode.D))
-            player.AddForce(Vector3.right);
+        Move();
+    }
+
+    void Move()
+    {
+        float x = Input.GetAxisRaw("Horizontal");
+        float z = Input.GetAxisRaw("Vertical");
+
+        Vector3 forward = cameraTransform.forward;
+        Vector3 right = cameraTransform.right;
+
+        forward.y = 0f;
+        right.y = 0f;
+
+        forward.Normalize();
+        right.Normalize();
+
+       
+        Vector3 movement = forward * z + right * x;
+        movement.Normalize();
+
+        rb.MovePosition(
+            rb.position + movement * speed * Time.fixedDeltaTime
+        );
+
+        if (movement != Vector3.zero)
+        {
+            transform.forward = movement;
+        }
+    }
+
+    void Jump()
+    {
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        isGrounded = false;
+    }
+
+    void Blink()
+    {
+        Vector3 forward = cameraTransform.forward;
+        Vector3 destination = rb.position + forward * blinkDistance;
+
+
+        Vector3 rayStart = destination + Vector3.up * 10f;
+
+        RaycastHit hit;
+
+
+        if (Physics.Raycast(rayStart, Vector3.down, out hit, 20f))
+        {
+            destination = hit.point;  
+
+            destination.y += 0.5f;
+
+            if (destination.y < 0f)
+            {
+                destination.y = 0f;
+            }
+
+            rb.MovePosition(destination);
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        isGrounded = true;
     }
 }

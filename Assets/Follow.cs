@@ -1,19 +1,28 @@
 using UnityEngine;
 
-public class Follow : MonoBehaviour
+public class CameraController : MonoBehaviour
 {
     public Transform player;
-    public Transform Camera;
-    public Vector3 offset;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
+    public float distance = 6f;
+    public float height = 3f;
+    public float sensitivity = 3f;
+
+    float rotationX = 20f;
+    float rotationY = 0f;
+
     void Update()
     {
-        Camera.position = player.transform.position + offset;
+        rotationY += Input.GetAxis("Mouse X") * sensitivity;
+        rotationX -= Input.GetAxis("Mouse Y") * sensitivity;
+
+        rotationX = Mathf.Clamp(rotationX, 5f, 60f);
+    }
+
+    void LateUpdate()
+    {
+        transform.rotation = Quaternion.Euler(rotationX, rotationY, 0f);
+
+        transform.position = player.position - transform.forward * distance + Vector3.up * height;
     }
 }
